@@ -1,0 +1,213 @@
+{
+  "updated_at": "2026-06-26T09:14:46.217433+00:00",
+  "items": [
+    {
+      "name": "USD/KRW",
+      "group": "fx",
+      "ticker": "usdkrw",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "USD/JPY",
+      "group": "fx",
+      "ticker": "usdjpy",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "EUR/USD",
+      "group": "fx",
+      "ticker": "eurusd",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "달러지수 (DXY)",
+      "group": "fx",
+      "ticker": "dx.f",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "미국 10년물",
+      "group": "rates",
+      "ticker": "10yusy.b",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "미국 30년물",
+      "group": "rates",
+      "ticker": "30yusy.b",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "일본 10년물",
+      "group": "rates",
+      "ticker": "10yjpy.b",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "한국 10년물",
+      "group": "rates",
+      "ticker": "10ykry.b",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "독일 10년물",
+      "group": "rates",
+      "ticker": "10ydey.b",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "금 (Gold)",
+      "group": "commodity",
+      "ticker": "xauusd",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "WTI 유가",
+      "group": "commodity",
+      "ticker": "cl.f",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "브렌트유",
+      "group": "commodity",
+      "ticker": "lco.f",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "천연가스",
+      "group": "commodity",
+      "ticker": "ng.f",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "미국 소맥(밀)",
+      "group": "agri",
+      "ticker": "zw.f",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "미국 옥수수",
+      "group": "agri",
+      "ticker": "zc.f",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "미국 대두",
+      "group": "agri",
+      "ticker": "zs.f",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "비트코인",
+      "group": "crypto",
+      "ticker": "btcusd",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "VIX 지수",
+      "group": "vol",
+      "ticker": "^vix",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "다우존스",
+      "group": "us_eq",
+      "ticker": "^dji",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "S&P500",
+      "group": "us_eq",
+      "ticker": "^spx",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "나스닥100",
+      "group": "us_eq",
+      "ticker": "^ndq",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "러셀2000",
+      "group": "us_eq",
+      "ticker": "^rut",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "니케이225",
+      "group": "global_eq",
+      "ticker": "^nkx",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "Euro Stoxx 50",
+      "group": "global_eq",
+      "ticker": "^estx50",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "항셍지수",
+      "group": "global_eq",
+      "ticker": "^hsi",
+      "value": null,
+      "date": null,
+      "ok": false
+    },
+    {
+      "name": "대만 가권지수",
+      "group": "global_eq",
+      "ticker": "^twii",
+      "value": null,
+      "date": null,
+      "ok": false
+    }
+  ]
+}
