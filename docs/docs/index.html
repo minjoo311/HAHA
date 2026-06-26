@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>장전 매크로 대시보드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#13151A;
+    --panel:#1B1E25;
+    --panel-line:#2A2E38;
+    --text:#E8E9ED;
+    --text-dim:#8B8F99;
+    --text-faint:#565A66;
+    --up:#E5484D;
+    --down:#3B82F6;
+    --flat:#8B8F99;
+    --amber:#F0A23A;
+    --mono:'JetBrains Mono', monospace;
+    --sans:'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{background:var(--bg); color:var(--text); font-family:var(--sans);}
+  body{
+    padding: 28px 20px 80px;
+    max-width: 1180px;
+    margin: 0 auto;
+    -webkit-font-smoothing: antialiased;
+  }
+  a{color:inherit;}
+
+  /* ===== Header ===== */
+  .header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:12px;
+    border-bottom: 1px solid var(--panel-line);
+    padding-bottom: 18px;
+    margin-bottom: 24px;
+  }
+  .header h1{
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .header .sub{
+    font-size: 12.5px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+  .updated{
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    text-align: right;
+  }
+  .updated .stale{
+    color: var(--amber);
+  }
+
+  /* ===== Risk Gauge (signature element) ===== */
+  .gauge-wrap{
+    background: var(--panel);
+    border: 1px solid var(--panel-line);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 28px;
+    display:flex;
+    align-items:center;
+    gap: 22px;
+    flex-wrap: wrap;
+  }
+  .gauge-label{
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space:nowrap;
+  }
+  .gauge-bar{
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--down) 0%, var(--flat) 50%, var(--up) 100%);
+  }
+  .gauge-marker{
+    position:absolute;
+    top:-6px;
+    width: 4px;
+    height: 20px;
+    background: var(--text);
+    border-radius: 2px;
+    transform: translateX(-50%);
+    transition: left 0.4s ease;
+  }
+  .gauge-readout{
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    min-width: 92px;
+    text-align:right;
+  }
+  .gauge-sub{
+    font-size: 11.5px;
+    color: var(--text-faint);
+    width: 100%;
+    margin-top: 2px;
+  }
+
+  /* ===== Sections ===== */
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  section.panel{
+    background: var(--panel);
+    border: 1px solid var(--panel-line);
+    border-radius: 10px;
+    overflow:hidden;
+  }
+  .panel-title{
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 12px 16px 10px;
+    border-bottom: 1px solid var(--panel-line);
+  }
+  .row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--panel-line);
+    gap: 10px;
+  }
+  .row:last-child{border-bottom:none;}
+  .row .name{
+    font-size: 13.5px;
+    color: var(--text);
+    white-space:nowrap;
+  }
+  .row .value-block{
+    display:flex;
+    align-items:baseline;
+    gap: 8px;
+    font-family: var(--mono);
+    white-space:nowrap;
+  }
+  .row .value{
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .row .delta{
+    font-size: 11.5px;
+    font-weight: 500;
+    min-width: 52px;
+    text-align:right;
+  }
+  .delta.up{color:var(--up);}
+  .delta.down{color:var(--down);}
+  .delta.flat{color:var(--flat);}
+  .value.na, .delta.na{color:var(--text-faint); font-weight:400;}
+
+  .section-gap{ margin-top: 28px; }
+  .section-heading{
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-faint);
+    letter-spacing: 0.04em;
+    margin: 28px 0 12px;
+    display:flex;
+    align-items:center;
+    gap: 10px;
+  }
+  .section-heading::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background: var(--panel-line);
+  }
+
+  footer{
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--panel-line);
+    font-size: 11.5px;
+    color: var(--text-faint);
+    line-height:1.6;
+  }
+
+  @media (max-width: 600px){
+    .header{flex-direction:column; align-items:flex-start;}
+    .updated{text-align:left;}
+    .gauge-readout{min-width:auto;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <div>
+      <h1>장전 매크로 대시보드</h1>
+      <div class="sub">환율 · 금리 · 원자재 · 증시 — 하루 1회 자동 갱신</div>
+    </div>
+    <div class="updated" id="updated-at">불러오는 중...</div>
+  </div>
+
+  <div class="gauge-wrap" id="risk-gauge">
+    <div class="gauge-label">안전자산 신호</div>
+    <div class="gauge-bar"><div class="gauge-marker" id="gauge-marker" style="left:50%"></div></div>
+    <div class="gauge-readout" id="gauge-readout">계산 중</div>
+    <div class="gauge-sub">금·美10년·DXY·달러/엔 4개 전일比 평균으로 산출 (왼쪽=리스크오프/안전자산 강세, 오른쪽=리스크온)</div>
+  </div>
+
+  <div class="section-heading">환율 · 통화</div>
+  <div class="grid" id="grid-fx"></div>
+
+  <div class="section-heading">금리 · 채권 (%)</div>
+  <div class="grid" id="grid-rates"></div>
+
+  <div class="section-heading">원자재 · 에너지 / 농산물</div>
+  <div class="grid" id="grid-commodity-agri"></div>
+
+  <div class="section-heading">암호화폐 · 변동성</div>
+  <div class="grid" id="grid-crypto-vol"></div>
+
+  <div class="section-heading">미국 증시</div>
+  <div class="grid" id="grid-us-eq"></div>
+
+  <div class="section-heading">글로벌 증시</div>
+  <div class="grid" id="grid-global-eq"></div>
+
+  <footer id="footer-note">
+    데이터 출처: Stooq.com (무료, 약 15~20분 지연). 매일 1회(한국시간 오전 7시경) GitHub Actions로 자동 갱신됩니다.<br>
+    "N/A"로 표시된 항목은 해당일 데이터 수신에 실패한 항목입니다 — 티커 코드를 다시 확인해야 할 수 있습니다.
+  </footer>
+
+<script>
+const GROUP_TARGETS = {
+  fx: 'grid-fx',
+  rates: 'grid-rates',
+  commodity: 'grid-commodity-agri',
+  agri: 'grid-commodity-agri',
+  crypto: 'grid-crypto-vol',
+  vol: 'grid-crypto-vol',
+  us_eq: 'grid-us-eq',
+  global_eq: 'grid-global-eq',
+};
+
+const GROUP_LABELS = {
+  fx: '환율',
+  rates: '금리',
+  commodity: '원자재',
+  agri: '농산물',
+  crypto: '암호화폐',
+  vol: '변동성',
+  us_eq: '미국 증시',
+  global_eq: '글로벌 증시',
+};
+
+const SAFE_HAVEN_NAMES = ['금 (Gold)', '미국 10년물', '달러지수 (DXY)', 'USD/JPY'];
+// 달러/엔, 미국채 금리 상승은 통상 리스크온 신호, 금 상승은 리스크오프 신호이므로 부호를 보정
+const SAFE_HAVEN_SIGN = {
+  '금 (Gold)': 1,        // 금 상승 → 리스크오프(왼쪽)
+  '미국 10년물': -1,      // 금리 상승 → 리스크온(오른쪽)
+  '달러지수 (DXY)': -1,   // 달러 강세 → 보통 리스크오프지만, 체크리스트 맥락상 변동성 신호로 단순화
+  'USD/JPY': -1,         // 엔 약세(USD/JPY 상승) → 리스크온
+};
+
+function fmtValue(v, group){
+  if (v === null || v === undefined) return 'N/A';
+  if (group === 'rates') return v.toFixed(2) + '%';
+  if (v >= 1000) return v.toLocaleString('en-US', {maximumFractionDigits: 2});
+  if (v >= 1) return v.toFixed(2);
+  return v.toFixed(4);
+}
+
+function buildRow(item, prevMap){
+  const row = document.createElement('div');
+  row.className = 'row';
+
+  const name = document.createElement('div');
+  name.className = 'name';
+  name.textContent = item.name;
+  row.appendChild(name);
+
+  const valueBlock = document.createElement('div');
+  valueBlock.className = 'value-block';
+
+  const value = document.createElement('span');
+  value.className = item.ok ? 'value' : 'value na';
+  value.textContent = fmtValue(item.value, item.group);
+  valueBlock.appendChild(value);
+
+  const delta = document.createElement('span');
+  const prev = prevMap[item.name];
+  if (item.ok && prev && prev.ok && prev.value){
+    const diff = item.value - prev.value;
+    const pct = (diff / prev.value) * 100;
+    const dir = diff > 0.0000001 ? 'up' : diff < -0.0000001 ? 'down' : 'flat';
+    delta.className = 'delta ' + dir;
+    const arrow = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '–';
+    delta.textContent = `${arrow} ${Math.abs(pct).toFixed(2)}%`;
+  } else {
+    delta.className = 'delta na';
+    delta.textContent = '–';
+  }
+  valueBlock.appendChild(delta);
+  row.appendChild(valueBlock);
+
+  return row;
+}
+
+function renderGauge(items, prevMap){
+  const marker = document.getElementById('gauge-marker');
+  const readout = document.getElementById('gauge-readout');
+
+  let total = 0, count = 0;
+  SAFE_HAVEN_NAMES.forEach(name => {
+    const item = items.find(i => i.name === name);
+    const prev = prevMap[name];
+    if (item && item.ok && prev && prev.ok && prev.value){
+      const pct = ((item.value - prev.value) / prev.value) * 100;
+      total += pct * SAFE_HAVEN_SIGN[name];
+      count++;
+    }
+  });
+
+  if (count === 0){
+    readout.textContent = '데이터 부족';
+    marker.style.left = '50%';
+    return;
+  }
+
+  const avg = total / count;
+  // -2% ~ +2% 범위를 0~100% 위치로 매핑 (클램프)
+  const clamped = Math.max(-2, Math.min(2, avg));
+  const pos = ((clamped + 2) / 4) * 100;
+  marker.style.left = pos + '%';
+
+  let label, color;
+  if (avg > 0.3){ label = '리스크온 우위'; color = 'var(--up)'; }
+  else if (avg < -0.3){ label = '리스크오프 우위'; color = 'var(--down)'; }
+  else { label = '중립'; color = 'var(--flat)'; }
+
+  readout.innerHTML = `<span style="color:${color}">${label}</span>`;
+}
+
+async function loadDashboard(){
+  try {
+    const [curRes, prevRes] = await Promise.all([
+      fetch('data.json?_=' + Date.now()),
+      fetch('data_prev.json?_=' + Date.now()).catch(() => null),
+    ]);
+    const cur = await curRes.json();
+    let prev = { items: [] };
+    if (prevRes && prevRes.ok) {
+      prev = await prevRes.json();
+    }
+    const prevMap = {};
+    (prev.items || []).forEach(i => { prevMap[i.name] = i; });
+
+    // 업데이트 시각 표시
+    const updatedEl = document.getElementById('updated-at');
+    const updatedDate = new Date(cur.updated_at);
+    const now = new Date();
+    const hoursSince = (now - updatedDate) / 3600000;
+    const dateStr = updatedDate.toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' });
+    if (hoursSince > 30){
+      updatedEl.innerHTML = `최종 갱신: ${dateStr}<br><span class="stale">⚠ 갱신이 지연되었을 수 있습니다</span>`;
+    } else {
+      updatedEl.textContent = `최종 갱신: ${dateStr}`;
+    }
+
+    // 그룹별로 렌더링
+    Object.values(GROUP_TARGETS).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = '';
+    });
+
+    const grouped = {};
+    cur.items.forEach(item => {
+      if (!grouped[item.group]) grouped[item.group] = [];
+      grouped[item.group].push(item);
+    });
+
+    Object.entries(grouped).forEach(([group, items]) => {
+      const targetId = GROUP_TARGETS[group];
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      let panel = target.querySelector(`[data-group="${group}"]`);
+      if (!panel){
+        panel = document.createElement('section');
+        panel.className = 'panel';
+        panel.dataset.group = group;
+        const title = document.createElement('div');
+        title.className = 'panel-title';
+        title.textContent = GROUP_LABELS[group] || group;
+        panel.appendChild(title);
+        target.appendChild(panel);
+      }
+      items.forEach(item => {
+        panel.appendChild(buildRow(item, prevMap));
+      });
+    });
+
+    renderGauge(cur.items, prevMap);
+
+  } catch (err) {
+    document.getElementById('updated-at').textContent = '데이터 로드 실패';
+    console.error(err);
+  }
+}
+
+loadDashboard();
+</script>
+</body>
+</html>
