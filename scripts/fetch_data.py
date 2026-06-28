@@ -60,10 +60,14 @@ QUOTE_URL = "https://api.twelvedata.com/quote?symbol={symbol}&apikey={key}"
 
 def fetch_one(symbol: str):
     """Twelve Data /quote 엔드포인트에서 현재가(close)를 가져온다. 실패 시 None."""
-    url = QUOTE_URL.format(symbol=urllib.parse_quote(symbol), key=API_KEY)
+    url = QUOTE_URL.format(symbol=urllib.parse.quote(symbol), key=API_KEY)
     try:
         with urllib.request.urlopen(url, timeout=15) as resp:
             raw = resp.read().decode("utf-8", errors="replace")
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="replace")
+        print(f"  [실패] {symbol}: HTTP {e.code} - {body[:200]}", file=sys.stderr)
+        return None
     except (urllib.error.URLError, TimeoutError) as e:
         print(f"  [실패] {symbol}: {e}", file=sys.stderr)
         return None
