@@ -19,6 +19,10 @@
     --down:#3B82F6;
     --flat:#8B8F99;
     --amber:#F0A23A;
+    --signal-neutral:#565A66;
+    --signal-watch:#F0A23A;
+    --signal-alert:#E5484D;
+    --manual:#7C9EF0;
     --mono:'JetBrains Mono', monospace;
     --sans:'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
   }
@@ -31,8 +35,8 @@
     -webkit-font-smoothing: antialiased;
   }
   a{color:inherit;}
+  button{font-family:inherit; cursor:pointer;}
 
-  /* ===== Header ===== */
   .header{
     display:flex;
     justify-content:space-between;
@@ -43,79 +47,71 @@
     padding-bottom: 18px;
     margin-bottom: 24px;
   }
-  .header h1{
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
-  .header .sub{
-    font-size: 12.5px;
-    color: var(--text-dim);
-    margin-top: 4px;
-  }
-  .updated{
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text-faint);
-    text-align: right;
-  }
-  .updated .stale{
-    color: var(--amber);
-  }
+  .header h1{ font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .header .sub{ font-size: 12.5px; color: var(--text-dim); margin-top: 4px; }
+  .updated{ font-family: var(--mono); font-size: 12px; color: var(--text-faint); text-align: right; }
+  .updated .stale{ color: var(--amber); }
 
-  /* ===== Risk Gauge (signature element) ===== */
-  .gauge-wrap{
-    background: var(--panel);
-    border: 1px solid var(--panel-line);
-    border-radius: 10px;
-    padding: 18px 20px;
-    margin-bottom: 28px;
-    display:flex;
-    align-items:center;
-    gap: 22px;
-    flex-wrap: wrap;
-  }
-  .gauge-label{
-    font-size: 12px;
+  /* ===== 해석 카드 (시그니처) ===== */
+  .interpretation-section{ margin-bottom: 32px; }
+  .interpretation-title{
+    font-size: 13px;
+    font-weight: 600;
     color: var(--text-dim);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    white-space:nowrap;
+    letter-spacing: 0.07em;
+    margin-bottom: 12px;
+    display:flex;
+    align-items:center;
+    gap: 10px;
   }
-  .gauge-bar{
-    position: relative;
-    flex: 1;
-    min-width: 200px;
-    height: 8px;
-    border-radius: 4px;
-    background: linear-gradient(90deg, var(--down) 0%, var(--flat) 50%, var(--up) 100%);
-  }
-  .gauge-marker{
-    position:absolute;
-    top:-6px;
-    width: 4px;
-    height: 20px;
-    background: var(--text);
-    border-radius: 2px;
-    transform: translateX(-50%);
-    transition: left 0.4s ease;
-  }
-  .gauge-readout{
+  .interpretation-title .count{
     font-family: var(--mono);
-    font-weight: 600;
-    font-size: 14px;
-    white-space: nowrap;
-    min-width: 92px;
-    text-align:right;
-  }
-  .gauge-sub{
-    font-size: 11.5px;
+    font-size: 11px;
     color: var(--text-faint);
-    width: 100%;
-    margin-top: 2px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .insight-card{
+    background: var(--panel);
+    border: 1px solid var(--panel-line);
+    border-left: 3px solid var(--signal-neutral);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    display:flex;
+    gap: 14px;
+    align-items:flex-start;
+  }
+  .insight-card.watch{ border-left-color: var(--signal-watch); }
+  .insight-card.alert{ border-left-color: var(--signal-alert); }
+  .insight-card .icon{
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.06);
+    color: var(--text-dim);
+    white-space: nowrap;
+    margin-top: 1px;
+  }
+  .insight-card.watch .icon{ background: rgba(240,162,58,0.15); color: var(--signal-watch); }
+  .insight-card.alert .icon{ background: rgba(229,72,77,0.15); color: var(--signal-alert); }
+  .insight-card .body{ flex: 1; }
+  .insight-card .headline{ font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  .insight-card .detail{ font-size: 12.5px; color: var(--text-dim); line-height: 1.5; }
+  .insight-empty{
+    text-align:center;
+    padding: 28px 20px;
+    color: var(--text-faint);
+    font-size: 13px;
+    border: 1px dashed var(--panel-line);
+    border-radius: 8px;
   }
 
-  /* ===== Sections ===== */
+  /* ===== Sections / Grid ===== */
   .grid{
     display:grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -135,74 +131,80 @@
     letter-spacing: 0.07em;
     padding: 12px 16px 10px;
     border-bottom: 1px solid var(--panel-line);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .panel-title .source-tag{
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--text-faint);
   }
   .row{
     display:flex;
     justify-content:space-between;
-    align-items:baseline;
-    padding: 10px 16px;
+    align-items:center;
+    padding: 9px 16px;
     border-bottom: 1px solid var(--panel-line);
     gap: 10px;
   }
   .row:last-child{border-bottom:none;}
-  .row .name{
-    font-size: 13.5px;
-    color: var(--text);
-    white-space:nowrap;
+  .row .name{ font-size: 13.5px; color: var(--text); white-space:nowrap; display:flex; align-items:center; gap:6px; }
+  .row .manual-dot{
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--manual);
+    flex-shrink: 0;
   }
   .row .value-block{
-    display:flex;
-    align-items:baseline;
-    gap: 8px;
-    font-family: var(--mono);
-    white-space:nowrap;
+    display:flex; align-items:center; gap: 8px;
+    font-family: var(--mono); white-space:nowrap;
   }
-  .row .value{
-    font-size: 14px;
-    font-weight: 600;
-  }
-  .row .delta{
-    font-size: 11.5px;
-    font-weight: 500;
-    min-width: 52px;
-    text-align:right;
-  }
-  .delta.up{color:var(--up);}
-  .delta.down{color:var(--down);}
-  .delta.flat{color:var(--flat);}
+  .row .value{ font-size: 14px; font-weight: 600; }
+  .row .delta{ font-size: 11.5px; font-weight: 500; min-width: 52px; text-align:right; }
+  .delta.up{color:var(--up);} .delta.down{color:var(--down);} .delta.flat{color:var(--flat);}
   .value.na, .delta.na{color:var(--text-faint); font-weight:400;}
 
-  .section-gap{ margin-top: 28px; }
-  .section-heading{
+  .row .manual-input{
+    width: 90px;
+    background: rgba(124,158,240,0.08);
+    border: 1px solid rgba(124,158,240,0.3);
+    border-radius: 5px;
+    color: var(--manual);
+    font-family: var(--mono);
     font-size: 13px;
-    font-weight: 600;
-    color: var(--text-faint);
-    letter-spacing: 0.04em;
-    margin: 28px 0 12px;
-    display:flex;
-    align-items:center;
-    gap: 10px;
+    padding: 4px 8px;
+    text-align: right;
   }
-  .section-heading::after{
-    content:"";
-    flex:1;
-    height:1px;
-    background: var(--panel-line);
+  .row .manual-input:focus{ outline: none; border-color: var(--manual); background: rgba(124,158,240,0.14); }
+  .row .manual-input::placeholder{ color: var(--text-faint); }
+
+  .section-heading{
+    font-size: 13px; font-weight: 600; color: var(--text-faint);
+    letter-spacing: 0.04em; margin: 28px 0 12px;
+    display:flex; align-items:center; gap: 10px;
   }
+  .section-heading::after{ content:""; flex:1; height:1px; background: var(--panel-line); }
+  .section-heading .legend{
+    font-size: 10.5px; font-weight: 400; color: var(--text-faint);
+    display:flex; align-items:center; gap: 5px; text-transform:none; letter-spacing:0;
+  }
+  .legend .manual-dot{ width:5px; height:5px; border-radius:50%; background:var(--manual); }
 
   footer{
-    margin-top: 40px;
-    padding-top: 16px;
-    border-top: 1px solid var(--panel-line);
-    font-size: 11.5px;
-    color: var(--text-faint);
-    line-height:1.6;
+    margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--panel-line);
+    font-size: 11.5px; color: var(--text-faint); line-height:1.6;
   }
+  footer .reset-btn{
+    background: none; border: 1px solid var(--panel-line); color: var(--text-dim);
+    border-radius: 6px; padding: 6px 12px; font-size: 11.5px; margin-top: 10px;
+  }
+  footer .reset-btn:hover{ border-color: var(--signal-alert); color: var(--signal-alert); }
 
   @media (max-width: 600px){
     .header{flex-direction:column; align-items:flex-start;}
     .updated{text-align:left;}
-    .gauge-readout{min-width:auto;}
   }
 </style>
 </head>
@@ -211,25 +213,23 @@
   <div class="header">
     <div>
       <h1>장전 매크로 대시보드</h1>
-      <div class="sub">환율 · 금리 · 원자재 · 증시 — 하루 1회 자동 갱신</div>
+      <div class="sub">자동 수집 + 직접 입력 데이터를 함께 해석합니다</div>
     </div>
     <div class="updated" id="updated-at">불러오는 중...</div>
   </div>
 
-  <div class="gauge-wrap" id="risk-gauge">
-    <div class="gauge-label">안전자산 신호</div>
-    <div class="gauge-bar"><div class="gauge-marker" id="gauge-marker" style="left:50%"></div></div>
-    <div class="gauge-readout" id="gauge-readout">계산 중</div>
-    <div class="gauge-sub">금·美10년·DXY·달러/엔 4개 전일比 평균으로 산출 (왼쪽=리스크오프/안전자산 강세, 오른쪽=리스크온)</div>
+  <div class="interpretation-section">
+    <div class="interpretation-title">오늘의 해석 <span class="count" id="insight-count"></span></div>
+    <div id="insight-list"></div>
   </div>
 
-  <div class="section-heading">환율 · 통화</div>
+  <div class="section-heading">환율 · 통화 <span class="legend"></span></div>
   <div class="grid" id="grid-fx"></div>
 
-  <div class="section-heading">금리 · 채권 (%)</div>
+  <div class="section-heading">금리 · 채권 (%) <span class="legend"><span class="manual-dot"></span> 직접 입력 가능</span></div>
   <div class="grid" id="grid-rates"></div>
 
-  <div class="section-heading">원자재 · 에너지 / 농산물</div>
+  <div class="section-heading">원자재 · 에너지 / 농산물 <span class="legend"><span class="manual-dot"></span> 직접 입력 가능</span></div>
   <div class="grid" id="grid-commodity-agri"></div>
 
   <div class="section-heading">암호화폐 · 변동성</div>
@@ -238,123 +238,281 @@
   <div class="section-heading">미국 증시</div>
   <div class="grid" id="grid-us-eq"></div>
 
-  <div class="section-heading">글로벌 증시</div>
+  <div class="section-heading">글로벌 증시 <span class="legend"><span class="manual-dot"></span> 직접 입력 가능</span></div>
   <div class="grid" id="grid-global-eq"></div>
 
   <footer id="footer-note">
-    데이터 출처: Stooq.com (무료, 약 15~20분 지연). 매일 1회(한국시간 오전 7시경) GitHub Actions로 자동 갱신됩니다.<br>
-    "N/A"로 표시된 항목은 해당일 데이터 수신에 실패한 항목입니다 — 티커 코드를 다시 확인해야 할 수 있습니다.
+    자동 항목 출처: Twelve Data (무료 플랜, 약 15분 지연). 직접 입력 항목은 investing.com 등에서 확인한 값을 입력하면 브라우저에 저장되어 다음에도 유지됩니다.<br>
+    "N/A"는 자동 수집 실패 항목, 빈 입력칸은 아직 입력하지 않은 항목입니다. 입력값이 늘어날수록 아래 해석이 더 정교해집니다.<br>
+    <button class="reset-btn" id="reset-manual">직접 입력 데이터 모두 지우기</button>
   </footer>
 
 <script>
 const GROUP_TARGETS = {
-  fx: 'grid-fx',
-  rates: 'grid-rates',
-  commodity: 'grid-commodity-agri',
-  agri: 'grid-commodity-agri',
-  crypto: 'grid-crypto-vol',
-  vol: 'grid-crypto-vol',
-  us_eq: 'grid-us-eq',
-  global_eq: 'grid-global-eq',
+  fx: 'grid-fx', rates: 'grid-rates', commodity: 'grid-commodity-agri', agri: 'grid-commodity-agri',
+  crypto: 'grid-crypto-vol', vol: 'grid-crypto-vol', us_eq: 'grid-us-eq', global_eq: 'grid-global-eq',
 };
-
 const GROUP_LABELS = {
-  fx: '환율',
-  rates: '금리',
-  commodity: '원자재',
-  agri: '농산물',
-  crypto: '암호화폐',
-  vol: '변동성',
-  us_eq: '미국 증시',
-  global_eq: '글로벌 증시',
+  fx: '환율', rates: '금리', commodity: '원자재', agri: '농산물',
+  crypto: '암호화폐', vol: '변동성', us_eq: '미국 증시', global_eq: '글로벌 증시',
 };
 
-const SAFE_HAVEN_NAMES = ['금 (Gold)', '미국 10년물', '달러지수 (DXY)', 'USD/JPY'];
-// 달러/엔, 미국채 금리 상승은 통상 리스크온 신호, 금 상승은 리스크오프 신호이므로 부호를 보정
-const SAFE_HAVEN_SIGN = {
-  '금 (Gold)': 1,        // 금 상승 → 리스크오프(왼쪽)
-  '미국 10년물': -1,      // 금리 상승 → 리스크온(오른쪽)
-  '달러지수 (DXY)': -1,   // 달러 강세 → 보통 리스크오프지만, 체크리스트 맥락상 변동성 신호로 단순화
-  'USD/JPY': -1,         // 엔 약세(USD/JPY 상승) → 리스크온
-};
+// 수동 입력이 허용되는 항목들 (자동 수집이 어려운 항목 위주)
+const MANUAL_ITEMS = [
+  '달러지수 (DXY)', '미국 10년물', '미국 30년물', '일본 10년물', '한국 10년물', '독일 10년물',
+  'WTI 유가', '브렌트유', '천연가스', '미국 소맥(밀)', '미국 옥수수', '미국 대두',
+  'Euro Stoxx 50', '항셍지수', '대만 가권지수',
+];
 
-function fmtValue(v, group){
-  if (v === null || v === undefined) return 'N/A';
-  if (group === 'rates') return v.toFixed(2) + '%';
-  if (v >= 1000) return v.toLocaleString('en-US', {maximumFractionDigits: 2});
-  if (v >= 1) return v.toFixed(2);
-  return v.toFixed(4);
+const STORAGE_KEY = 'macro_dashboard_manual_v1';
+
+function loadManualData(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e){ return {}; }
+}
+function saveManualData(data){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){}
 }
 
-function buildRow(item, prevMap){
+function fmtValue(v, group){
+  if (v === null || v === undefined || v === '') return null;
+  if (group === 'rates') return parseFloat(v).toFixed(2) + '%';
+  if (v >= 1000) return Number(v).toLocaleString('en-US', {maximumFractionDigits: 2});
+  if (v >= 1) return Number(v).toFixed(2);
+  return Number(v).toFixed(4);
+}
+
+function buildRow(item, prevMap, manualData){
   const row = document.createElement('div');
   row.className = 'row';
+  const isManualEligible = MANUAL_ITEMS.includes(item.name);
+  const manualValue = manualData[item.name];
 
   const name = document.createElement('div');
   name.className = 'name';
-  name.textContent = item.name;
+  if (isManualEligible) {
+    const dot = document.createElement('span');
+    dot.className = 'manual-dot';
+    name.appendChild(dot);
+  }
+  name.appendChild(document.createTextNode(item.name));
   row.appendChild(name);
 
   const valueBlock = document.createElement('div');
   valueBlock.className = 'value-block';
 
-  const value = document.createElement('span');
-  value.className = item.ok ? 'value' : 'value na';
-  value.textContent = fmtValue(item.value, item.group);
-  valueBlock.appendChild(value);
+  // 자동 데이터가 있으면 그걸 표시, 없고 manual 가능하면 입력창
+  if (item.ok && item.value !== null) {
+    const value = document.createElement('span');
+    value.className = 'value';
+    value.textContent = fmtValue(item.value, item.group);
+    valueBlock.appendChild(value);
 
-  const delta = document.createElement('span');
-  const prev = prevMap[item.name];
-  if (item.ok && prev && prev.ok && prev.value){
-    const diff = item.value - prev.value;
-    const pct = (diff / prev.value) * 100;
-    const dir = diff > 0.0000001 ? 'up' : diff < -0.0000001 ? 'down' : 'flat';
-    delta.className = 'delta ' + dir;
-    const arrow = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '–';
-    delta.textContent = `${arrow} ${Math.abs(pct).toFixed(2)}%`;
+    const delta = document.createElement('span');
+    const prev = prevMap[item.name];
+    if (prev && prev.ok && prev.value){
+      const diff = item.value - prev.value;
+      const pct = (diff / prev.value) * 100;
+      const dir = diff > 0.0000001 ? 'up' : diff < -0.0000001 ? 'down' : 'flat';
+      delta.className = 'delta ' + dir;
+      const arrow = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '–';
+      delta.textContent = `${arrow} ${Math.abs(pct).toFixed(2)}%`;
+    } else {
+      delta.className = 'delta na';
+      delta.textContent = '–';
+    }
+    valueBlock.appendChild(delta);
+  } else if (isManualEligible) {
+    const input = document.createElement('input');
+    input.className = 'manual-input';
+    input.type = 'number';
+    input.step = 'any';
+    input.placeholder = '값 입력';
+    if (manualValue !== undefined) input.value = manualValue;
+    input.addEventListener('change', () => {
+      const data = loadManualData();
+      if (input.value === '') { delete data[item.name]; }
+      else { data[item.name] = parseFloat(input.value); }
+      saveManualData(data);
+      renderAll();
+    });
+    valueBlock.appendChild(input);
   } else {
-    delta.className = 'delta na';
-    delta.textContent = '–';
+    const value = document.createElement('span');
+    value.className = 'value na';
+    value.textContent = 'N/A';
+    valueBlock.appendChild(value);
   }
-  valueBlock.appendChild(delta);
   row.appendChild(valueBlock);
-
   return row;
 }
 
-function renderGauge(items, prevMap){
-  const marker = document.getElementById('gauge-marker');
-  const readout = document.getElementById('gauge-readout');
+// ===== 해석 엔진 =====
+// 각 규칙은 필요한 값들이 있을 때만 카드를 만든다. 데이터가 없으면 그 해석은 생성되지 않는다.
+function getValue(items, manualData, name){
+  const item = items.find(i => i.name === name);
+  if (item && item.ok && item.value !== null) return item.value;
+  if (MANUAL_ITEMS.includes(name) && manualData[name] !== undefined) return manualData[name];
+  return null;
+}
 
-  let total = 0, count = 0;
-  SAFE_HAVEN_NAMES.forEach(name => {
-    const item = items.find(i => i.name === name);
-    const prev = prevMap[name];
-    if (item && item.ok && prev && prev.ok && prev.value){
-      const pct = ((item.value - prev.value) / prev.value) * 100;
-      total += pct * SAFE_HAVEN_SIGN[name];
-      count++;
+function buildInsights(items, manualData){
+  const insights = [];
+  const v = (name) => getValue(items, manualData, name);
+
+  // 1. 미국 국채 10년-30년 스프레드
+  const us10 = v('미국 10년물'), us30 = v('미국 30년물');
+  if (us10 !== null && us30 !== null) {
+    const spread = us30 - us10;
+    if (spread < 0) {
+      insights.push({ level: 'alert', headline: '미국 장기채 금리 역전',
+        detail: `30년물(${us30.toFixed(2)}%)이 10년물(${us10.toFixed(2)}%)보다 낮습니다. 장기 성장 둔화 우려가 반영된 구간일 수 있습니다.` });
+    } else if (spread < 0.15) {
+      insights.push({ level: 'watch', headline: '미국 국채 커브 평탄화',
+        detail: `10년-30년 스프레드가 ${spread.toFixed(2)}%p로 좁습니다. 장기 성장 기대가 둔화되고 있을 가능성을 시사합니다.` });
+    } else {
+      insights.push({ level: 'neutral', headline: '미국 국채 커브 정상 형태',
+        detail: `30년물(${us30.toFixed(2)}%)이 10년물(${us10.toFixed(2)}%)보다 ${spread.toFixed(2)}%p 높은 정상적인 우상향 커브입니다.` });
     }
-  });
-
-  if (count === 0){
-    readout.textContent = '데이터 부족';
-    marker.style.left = '50%';
-    return;
   }
 
-  const avg = total / count;
-  // -2% ~ +2% 범위를 0~100% 위치로 매핑 (클램프)
-  const clamped = Math.max(-2, Math.min(2, avg));
-  const pos = ((clamped + 2) / 4) * 100;
-  marker.style.left = pos + '%';
+  // 2. 금 + 미국채10년 (안전자산 동행 여부)
+  const gold = v('금 (Gold)');
+  const goldItem = items.find(i => i.name === '금 (Gold)');
+  const goldPrevOk = goldItem && goldItem.ok;
+  if (gold !== null && us10 !== null) {
+    if (us10 < 4.0 && gold > 3000) {
+      insights.push({ level: 'watch', headline: '안전자산 동시 강세',
+        detail: `금 $${gold.toLocaleString()}, 미국채 10년물 ${us10.toFixed(2)}%로 낮은 수준입니다. 위험회피(리스크오프) 심리가 우세할 수 있습니다.` });
+    } else if (us10 > 4.5 && gold > 3000) {
+      insights.push({ level: 'neutral', headline: '금-국채금리 동반 상승',
+        detail: `금이 높은 가격을 유지하면서도 국채금리(${us10.toFixed(2)}%)가 높습니다. 인플레이션 우려와 안전자산 수요가 동시에 작용하고 있을 가능성이 있습니다.` });
+    }
+  }
 
-  let label, color;
-  if (avg > 0.3){ label = '리스크온 우위'; color = 'var(--up)'; }
-  else if (avg < -0.3){ label = '리스크오프 우위'; color = 'var(--down)'; }
-  else { label = '중립'; color = 'var(--flat)'; }
+  // 3. VIX 기반 시장 긴장도
+  const vix = v('VIX 지수');
+  if (vix !== null) {
+    if (vix >= 25) {
+      insights.push({ level: 'alert', headline: 'VIX 고조 — 시장 불안 신호',
+        detail: `VIX가 ${vix.toFixed(1)}로 평소보다 높습니다. 통상 20을 넘으면 단기 변동성 확대 구간으로 봅니다.` });
+    } else if (vix <= 13) {
+      insights.push({ level: 'neutral', headline: 'VIX 저점 — 시장 안정',
+        detail: `VIX가 ${vix.toFixed(1)}로 낮습니다. 시장이 단기적으로 안정적이라는 신호지만, 지나치게 낮을 때는 과신 구간일 수도 있습니다.` });
+    }
+  }
 
-  readout.innerHTML = `<span style="color:${color}">${label}</span>`;
+  // 4. 달러지수 + 원/달러 동행
+  const dxy = v('달러지수 (DXY)');
+  const usdkrw = v('USD/KRW');
+  if (dxy !== null && usdkrw !== null) {
+    insights.push({ level: 'neutral', headline: '달러 강세/약세 흐름',
+      detail: `DXY ${dxy.toFixed(2)}, 원/달러 ${usdkrw.toLocaleString()}원. DXY가 오르는 시기에 원/달러도 같이 오르면 달러 강세가 원화에도 일관되게 반영되고 있다는 뜻입니다.` });
+  }
+
+  // 5. WTI-브렌트 스프레드 (원유 시장 신호)
+  const wti = v('WTI 유가'), brent = v('브렌트유');
+  if (wti !== null && brent !== null) {
+    const spread = brent - wti;
+    insights.push({ level: 'neutral', headline: 'WTI-브렌트 스프레드',
+      detail: `브렌트유가 WTI보다 $${spread.toFixed(2)} 높습니다. 통상 국제 운송/지정학적 리스크가 브렌트에 더 크게 반영되는 편입니다.` });
+  }
+
+  // 6. 한미 금리차
+  const kr10 = v('한국 10년물');
+  if (kr10 !== null && us10 !== null) {
+    const diff = us10 - kr10;
+    if (diff > 1.0) {
+      insights.push({ level: 'watch', headline: '한미 금리차 확대',
+        detail: `미국 10년물(${us10.toFixed(2)}%)이 한국 10년물(${kr10.toFixed(2)}%)보다 ${diff.toFixed(2)}%p 높습니다. 원화 약세 압력 요인으로 작용할 수 있습니다.` });
+    }
+  }
+
+  // 7. 데이터가 거의 없을 때
+  const filledCount = items.filter(i => i.ok && i.value !== null).length +
+    Object.keys(manualData).length;
+  if (insights.length === 0) {
+    return { insights: [], filledCount };
+  }
+
+  return { insights, filledCount };
+}
+
+function renderInsights(items, manualData){
+  const { insights } = buildInsights(items, manualData);
+  const list = document.getElementById('insight-list');
+  const countEl = document.getElementById('insight-count');
+  list.innerHTML = '';
+
+  if (insights.length === 0) {
+    list.innerHTML = '<div class="insight-empty">아직 해석할 데이터가 부족합니다. 자동 수집이 끝나거나, 금리·원자재 항목에 값을 직접 입력하면 해석이 나타납니다.</div>';
+    countEl.textContent = '';
+    return;
+  }
+  countEl.textContent = `${insights.length}건`;
+  insights.forEach(ins => {
+    const card = document.createElement('div');
+    card.className = 'insight-card ' + ins.level;
+    const icon = document.createElement('div');
+    icon.className = 'icon';
+    icon.textContent = ins.level === 'alert' ? '주의' : ins.level === 'watch' ? '관찰' : '참고';
+    card.appendChild(icon);
+    const body = document.createElement('div');
+    body.className = 'body';
+    const headline = document.createElement('div');
+    headline.className = 'headline';
+    headline.textContent = ins.headline;
+    const detail = document.createElement('div');
+    detail.className = 'detail';
+    detail.textContent = ins.detail;
+    body.appendChild(headline);
+    body.appendChild(detail);
+    card.appendChild(body);
+    list.appendChild(card);
+  });
+}
+
+let currentData = { items: [] };
+let currentPrevMap = {};
+
+function renderAll(){
+  const manualData = loadManualData();
+  renderInsights(currentData.items, manualData);
+
+  Object.values(GROUP_TARGETS).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
+
+  const grouped = {};
+  currentData.items.forEach(item => {
+    if (!grouped[item.group]) grouped[item.group] = [];
+    grouped[item.group].push(item);
+  });
+
+  Object.entries(grouped).forEach(([group, items]) => {
+    const targetId = GROUP_TARGETS[group];
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    let panel = target.querySelector(`[data-group="${group}"]`);
+    if (!panel){
+      panel = document.createElement('section');
+      panel.className = 'panel';
+      panel.dataset.group = group;
+      const title = document.createElement('div');
+      title.className = 'panel-title';
+      const titleText = document.createElement('span');
+      titleText.textContent = GROUP_LABELS[group] || group;
+      title.appendChild(titleText);
+      panel.appendChild(title);
+      target.appendChild(panel);
+    }
+    items.forEach(item => {
+      panel.appendChild(buildRow(item, currentPrevMap, manualData));
+    });
+  });
 }
 
 async function loadDashboard(){
@@ -363,66 +521,37 @@ async function loadDashboard(){
       fetch('data.json?_=' + Date.now()),
       fetch('data_prev.json?_=' + Date.now()).catch(() => null),
     ]);
-    const cur = await curRes.json();
+    currentData = await curRes.json();
     let prev = { items: [] };
-    if (prevRes && prevRes.ok) {
-      prev = await prevRes.json();
-    }
-    const prevMap = {};
-    (prev.items || []).forEach(i => { prevMap[i.name] = i; });
+    if (prevRes && prevRes.ok) prev = await prevRes.json();
+    currentPrevMap = {};
+    (prev.items || []).forEach(i => { currentPrevMap[i.name] = i; });
 
-    // 업데이트 시각 표시
     const updatedEl = document.getElementById('updated-at');
-    const updatedDate = new Date(cur.updated_at);
+    const updatedDate = new Date(currentData.updated_at);
     const now = new Date();
     const hoursSince = (now - updatedDate) / 3600000;
     const dateStr = updatedDate.toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' });
     if (hoursSince > 30){
-      updatedEl.innerHTML = `최종 갱신: ${dateStr}<br><span class="stale">⚠ 갱신이 지연되었을 수 있습니다</span>`;
+      updatedEl.innerHTML = `자동 데이터 최종 갱신: ${dateStr}<br><span class="stale">⚠ 갱신이 지연되었을 수 있습니다</span>`;
     } else {
-      updatedEl.textContent = `최종 갱신: ${dateStr}`;
+      updatedEl.textContent = `자동 데이터 최종 갱신: ${dateStr}`;
     }
 
-    // 그룹별로 렌더링
-    Object.values(GROUP_TARGETS).forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.innerHTML = '';
-    });
-
-    const grouped = {};
-    cur.items.forEach(item => {
-      if (!grouped[item.group]) grouped[item.group] = [];
-      grouped[item.group].push(item);
-    });
-
-    Object.entries(grouped).forEach(([group, items]) => {
-      const targetId = GROUP_TARGETS[group];
-      const target = document.getElementById(targetId);
-      if (!target) return;
-
-      let panel = target.querySelector(`[data-group="${group}"]`);
-      if (!panel){
-        panel = document.createElement('section');
-        panel.className = 'panel';
-        panel.dataset.group = group;
-        const title = document.createElement('div');
-        title.className = 'panel-title';
-        title.textContent = GROUP_LABELS[group] || group;
-        panel.appendChild(title);
-        target.appendChild(panel);
-      }
-      items.forEach(item => {
-        panel.appendChild(buildRow(item, prevMap));
-      });
-    });
-
-    renderGauge(cur.items, prevMap);
-
+    renderAll();
   } catch (err) {
-    document.getElementById('updated-at').textContent = '데이터 로드 실패';
+    document.getElementById('updated-at').textContent = '자동 데이터 로드 실패 (직접 입력은 계속 사용 가능)';
+    renderAll();
     console.error(err);
   }
 }
+
+document.getElementById('reset-manual').addEventListener('click', () => {
+  if (confirm('직접 입력한 데이터를 모두 삭제할까요? 이 작업은 되돌릴 수 없습니다.')) {
+    localStorage.removeItem(STORAGE_KEY);
+    renderAll();
+  }
+});
 
 loadDashboard();
 </script>
