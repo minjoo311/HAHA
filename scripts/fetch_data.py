@@ -1,123 +1,126 @@
 #!/usr/bin/env python3
 """
-장 시작 전 매크로 대시보드 - 일일 데이터 수집 스크립트
-Stooq(무료, 키 불필요)에서 환율/금리/원자재/지수 데이터를 가져와 docs/data.json에 저장한다.
-GitHub Actions가 매일 1회 이 스크립트를 실행한다.
+장 시작 전 매크로 대시보드 - 일일 데이터 수집 스크립트 (Twelve Data API 버전)
+2026년 3월부터 Stooq가 API 키를 요구하기 시작해 더 이상 무료로 못 쓰게 되어,
+Twelve Data(무료 가입, 분당 8회 호출 제한)로 전환했다.
+
+필요 환경변수: TWELVEDATA_API_KEY (GitHub Secrets에 등록)
 """
-import csv
-import io
 import json
+import os
 import sys
 import time
-import urllib.request
 import urllib.error
+import urllib.parse
+import urllib.request
 from datetime import datetime, timezone
 
-# (표시이름, 그룹, stooq 티커)
-# 티커가 잘못되었거나 데이터가 없으면 해당 항목은 "N/A"로 표시되고 나머지는 정상 진행된다.
+API_KEY = os.environ.get("TWELVEDATA_API_KEY", "").strip()
+
+# (표시이름, 그룹, twelve data 심볼)
 ITEMS = [
     # 환율·통화
-    ("USD/KRW", "fx", "usdkrw"),
-    ("USD/JPY", "fx", "usdjpy"),
-    ("EUR/USD", "fx", "eurusd"),
-    ("달러지수 (DXY)", "fx", "dx.f"),
+    ("USD/KRW", "fx", "USD/KRW"),
+    ("USD/JPY", "fx", "USD/JPY"),
+    ("EUR/USD", "fx", "EUR/USD"),
+    ("달러지수 (DXY)", "fx", "DXY"),
     # 금리·채권 (단위: %)
-    ("미국 10년물", "rates", "10yusy.b"),
-    ("미국 30년물", "rates", "30yusy.b"),
-    ("일본 10년물", "rates", "10yjpy.b"),
-    ("한국 10년물", "rates", "10ykry.b"),
-    ("독일 10년물", "rates", "10ydey.b"),
+    ("미국 10년물", "rates", "US10Y"),
+    ("미국 30년물", "rates", "US30Y"),
+    ("일본 10년물", "rates", "JP10Y"),
+    ("한국 10년물", "rates", "KR10Y"),
+    ("독일 10년물", "rates", "DE10Y"),
     # 원자재·에너지
-    ("금 (Gold)", "commodity", "xauusd"),
-    ("WTI 유가", "commodity", "cl.f"),
-    ("브렌트유", "commodity", "lco.f"),
-    ("천연가스", "commodity", "ng.f"),
+    ("금 (Gold)", "commodity", "XAU/USD"),
+    ("WTI 유가", "commodity", "WTI/USD"),
+    ("브렌트유", "commodity", "BRENT/USD"),
+    ("천연가스", "commodity", "NATGAS/USD"),
     # 농산물
-    ("미국 소맥(밀)", "agri", "zw.f"),
-    ("미국 옥수수", "agri", "zc.f"),
-    ("미국 대두", "agri", "zs.f"),
+    ("미국 소맥(밀)", "agri", "WHEAT/USD"),
+    ("미국 옥수수", "agri", "CORN/USD"),
+    ("미국 대두", "agri", "SOYBEAN/USD"),
     # 암호화폐
-    ("비트코인", "crypto", "btcusd"),
+    ("비트코인", "crypto", "BTC/USD"),
     # 변동성
-    ("VIX 지수", "vol", "^vix"),
+    ("VIX 지수", "vol", "VIX"),
     # 미국 증시
-    ("다우존스", "us_eq", "^dji"),
-    ("S&P500", "us_eq", "^spx"),
-    ("나스닥100", "us_eq", "^ndq"),
-    ("러셀2000", "us_eq", "^rut"),
+    ("다우존스", "us_eq", "DJI"),
+    ("S&P500", "us_eq", "SPX"),
+    ("나스닥100", "us_eq", "NDX"),
+    ("러셀2000", "us_eq", "RUT"),
     # 글로벌 증시
-    ("니케이225", "global_eq", "^nkx"),
-    ("Euro Stoxx 50", "global_eq", "^estx50"),
-    ("항셍지수", "global_eq", "^hsi"),
-    ("대만 가권지수", "global_eq", "^twii"),
+    ("니케이225", "global_eq", "NI225"),
+    ("Euro Stoxx 50", "global_eq", "STOXX50E"),
+    ("항셍지수", "global_eq", "HSI"),
+    ("대만 가권지수", "global_eq", "TWII"),
 ]
 
-STOOQ_URL = "https://stooq.com/q/l/?s={ticker}&f=sd2t2ohlcv&h&e=csv"
-HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; personal-dashboard-script/1.0)"}
+QUOTE_URL = "https://api.twelvedata.com/quote?symbol={symbol}&apikey={key}"
 
 
-def fetch_one(ticker: str):
-    """Stooq CSV에서 마지막 종가(Close)와 날짜를 가져온다. 실패 시 None."""
-    url = STOOQ_URL.format(ticker=ticker)
-    req = urllib.request.Request(url, headers=HEADERS)
+def fetch_one(symbol: str):
+    """Twelve Data /quote 엔드포인트에서 현재가(close)를 가져온다. 실패 시 None."""
+    url = QUOTE_URL.format(symbol=urllib.parse_quote(symbol), key=API_KEY)
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(url, timeout=15) as resp:
             raw = resp.read().decode("utf-8", errors="replace")
     except (urllib.error.URLError, TimeoutError) as e:
-        print(f"  [실패] {ticker}: {e}", file=sys.stderr)
+        print(f"  [실패] {symbol}: {e}", file=sys.stderr)
         return None
 
-    reader = csv.DictReader(io.StringIO(raw))
-    row = next(reader, None)
-    if not row:
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        print(f"  [실패] {symbol}: JSON 파싱 실패 - {raw[:150]}", file=sys.stderr)
         return None
 
-    # Stooq는 데이터 없을 때 Close 값이 'N/D'
-    close = row.get("Close") or row.get("Close ")
-    date = row.get("Date")
-    if not close or close in ("N/D", ""):
+    if "code" in data and data.get("status") == "error":
+        print(f"  [실패] {symbol}: {data.get('message')}", file=sys.stderr)
+        return None
+
+    close = data.get("close")
+    date = data.get("datetime")
+    if close is None:
+        print(f"  [실패] {symbol}: close 값 없음 - {raw[:150]}", file=sys.stderr)
         return None
     try:
         value = float(close)
-    except ValueError:
+    except (ValueError, TypeError):
         return None
     return {"value": value, "date": date}
 
 
 def main():
+    if not API_KEY:
+        print("오류: TWELVEDATA_API_KEY 환경변수가 설정되지 않았습니다.", file=sys.stderr)
+        print("GitHub 저장소 Settings > Secrets and variables > Actions 에서 등록해주세요.", file=sys.stderr)
+        sys.exit(1)
+
     results = []
     print(f"총 {len(ITEMS)}개 항목 수집 시작...")
-    for name, group, ticker in ITEMS:
-        data = fetch_one(ticker)
+    for i, (name, group, symbol) in enumerate(ITEMS):
+        data = fetch_one(symbol)
         if data:
-            print(f"  [OK] {name} ({ticker}): {data['value']}")
+            print(f"  [OK] {name} ({symbol}): {data['value']}")
             results.append({
-                "name": name,
-                "group": group,
-                "ticker": ticker,
-                "value": data["value"],
-                "date": data["date"],
-                "ok": True,
+                "name": name, "group": group, "ticker": symbol,
+                "value": data["value"], "date": data["date"], "ok": True,
             })
         else:
-            print(f"  [N/A] {name} ({ticker}): 데이터 없음")
+            print(f"  [N/A] {name} ({symbol}): 데이터 없음")
             results.append({
-                "name": name,
-                "group": group,
-                "ticker": ticker,
-                "value": None,
-                "date": None,
-                "ok": False,
+                "name": name, "group": group, "ticker": symbol,
+                "value": None, "date": None, "ok": False,
             })
-        time.sleep(0.5)  # 과도한 요청 방지
+        # 무료 플랜은 분당 8회 제한 -> 매 호출 사이 8초 대기 (26개 * 8초 = 약 3.5분)
+        if i < len(ITEMS) - 1:
+            time.sleep(8)
 
     output = {
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "items": results,
     }
 
-    # 이전 데이터 불러와서 전일 대비 변화율 계산용으로 history에 누적
-    import os
     docs_dir = os.path.join(os.path.dirname(__file__), "..", "docs")
     os.makedirs(docs_dir, exist_ok=True)
     data_path = os.path.join(docs_dir, "data.json")
