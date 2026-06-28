@@ -73,6 +73,70 @@
   }
   .updated .stale{ color: var(--coral); }
 
+  .admin-section{
+    background: var(--panel);
+    border: 1.5px dashed var(--panel-line);
+    border-radius: 18px;
+    padding: 12px 18px;
+    margin-top: 24px;
+  }
+  .admin-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    cursor: pointer;
+  }
+  .admin-header h2{
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-faint);
+  }
+  .admin-body{ display:none; margin-top: 10px; }
+  .admin-section.open .admin-body{ display:block; }
+  .admin-body input[type="password"]{
+    width: 100%;
+    background: var(--bg);
+    border: 1.5px solid var(--panel-line);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .admin-body input[type="password"]:focus{ outline: none; border-color: var(--lavender); }
+  .admin-save-btn{
+    background: var(--panel-line);
+    color: var(--text);
+    border: none;
+    border-radius: 16px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .admin-status{
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 6px;
+  }
+  .admin-status.active{ color: var(--mint); font-weight: 600; }
+  .sync-badge{
+    display:inline-flex;
+    align-items:center;
+    gap: 4px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 12px;
+    background: var(--mint-bg);
+    color: #2A7A60;
+    margin-left: 8px;
+  }
+  .sync-badge.syncing{ background: var(--yellow-bg); color: #8A6418; }
+  .sync-badge.error{ background: var(--coral-bg); color: #C9402F; }
+
   .gauge-wrap{
     background: var(--panel);
     border: 1.5px solid var(--panel-line);
@@ -415,6 +479,7 @@
       <div class="paste-actions">
         <button class="paste-btn" id="paste-apply">적용하기</button>
         <span class="paste-result" id="paste-result"></span>
+        <span class="sync-badge" id="sync-badge" style="display:none;"></span>
       </div>
       <div class="paste-hint">investing.com 관심목록 페이지에서 표 전체를 드래그해서 복사 → 위 칸에 붙여넣기 → 적용하기. 이름을 인식해서 자동으로 해당 항목에 채워줘요. 입력한 값은 이 기기·이 브라우저에 저장돼요.</div>
     </div>
@@ -442,6 +507,19 @@
 
   <div class="section-heading">글로벌 증시 <span class="legend"><span class="manual-dot"></span> 직접 입력 가능</span></div>
   <div class="grid" id="grid-global-eq"></div>
+
+  <div class="admin-section" id="admin-section">
+    <div class="admin-header" id="admin-toggle">
+      <h2>⚙ 관리자 설정 (이 사이트를 운영하는 사람만)</h2>
+      <span class="toggle-arrow">▾</span>
+    </div>
+    <div class="admin-body">
+      <input type="password" id="admin-token-input" placeholder="GitHub 개인 토큰 (github_pat_...)을 입력하면 모든 방문자에게 보일 데이터를 갱신할 수 있어요">
+      <button class="admin-save-btn" id="admin-token-save">토큰 저장</button>
+      <span class="admin-status" id="admin-status"></span>
+      <div class="paste-hint">토큰은 이 기기·이 브라우저에만 저장되고, GitHub로 직접 전송될 때만 사용돼요. 토큰이 없는 다른 방문자는 이 사이트를 보기만 할 수 있어요.</div>
+    </div>
+  </div>
 
   <footer id="footer-note">
     자동 항목 출처: Twelve Data (무료 플랜, 약 15분 지연). 직접 입력 항목은 이 기기·이 브라우저에만 저장됩니다.<br>
@@ -547,6 +625,23 @@ function parsePastedWatchlist(text){
 }
 
 const STORAGE_KEY = 'macro_dashboard_manual_v1';
+const TOKEN_STORAGE_KEY = 'macro_dashboard_admin_token';
+
+// GitHub 저장소 정보 (이 사이트가 호스팅되는 저장소). manual_data.json을 공용 데이터 저장 장소로 쓴다.
+const GITHUB_OWNER = 'minjoo311';
+const GITHUB_REPO = 'HAHA';
+const GITHUB_BRANCH = 'main';
+const MANUAL_DATA_PATH = 'docs/manual_data.json';
+
+function getAdminToken(){
+  try { return localStorage.getItem(TOKEN_STORAGE_KEY) || ''; } catch(e){ return ''; }
+}
+function setAdminToken(token){
+  try {
+    if (token) localStorage.setItem(TOKEN_STORAGE_KEY, token);
+    else localStorage.removeItem(TOKEN_STORAGE_KEY);
+  } catch(e){}
+}
 
 // manualData의 각 항목은 {value, changePct} 형태. 예전 버전에 저장된 단순 숫자 데이터와도 호환되도록 정규화한다.
 function normalizeManualEntry(raw){
@@ -554,6 +649,55 @@ function normalizeManualEntry(raw){
   if (typeof raw === 'number') return { value: raw, changePct: null };
   if (typeof raw === 'object' && 'value' in raw) return raw;
   return null;
+}
+
+// 모든 방문자가 공통으로 보는 데이터는 GitHub의 manual_data.json에서 읽어온다 (캐시 회피용 타임스탬프 포함).
+// 실패하면(아직 파일이 없거나 네트워크 문제) 빈 객체로 시작한다.
+async function fetchRemoteManualData(){
+  try {
+    const url = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${MANUAL_DATA_PATH}?_=${Date.now()}`;
+    const res = await fetch(url);
+    if (!res.ok) return {};
+    return await res.json();
+  } catch(e){ return {}; }
+}
+
+// GitHub Contents API로 manual_data.json을 직접 갱신한다. 토큰이 있는 사람(관리자)만 호출한다.
+async function pushManualDataToGithub(data, token){
+  const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${MANUAL_DATA_PATH}`;
+  let sha = undefined;
+  try {
+    const getRes = await fetch(apiUrl, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
+    });
+    if (getRes.ok) {
+      const getJson = await getRes.json();
+      sha = getJson.sha;
+    }
+  } catch(e){}
+
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+  const body = {
+    message: `데이터 갱신 ${new Date().toISOString()}`,
+    content: content,
+    branch: GITHUB_BRANCH,
+  };
+  if (sha) body.sha = sha;
+
+  const putRes = await fetch(apiUrl, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!putRes.ok) {
+    const errJson = await putRes.json().catch(() => ({}));
+    throw new Error(errJson.message || `GitHub API 오류 (${putRes.status})`);
+  }
+  return await putRes.json();
 }
 
 function loadManualData(){
@@ -896,15 +1040,21 @@ function renderAll(){
 
 async function loadDashboard(){
   try {
-    const [curRes, prevRes] = await Promise.all([
+    const [curRes, prevRes, remoteManual] = await Promise.all([
       fetch('data.json?_=' + Date.now()),
       fetch('data_prev.json?_=' + Date.now()).catch(() => null),
+      fetchRemoteManualData(),
     ]);
     currentData = await curRes.json();
     let prev = { items: [] };
     if (prevRes && prevRes.ok) prev = await prevRes.json();
     currentPrevMap = {};
     (prev.items || []).forEach(i => { currentPrevMap[i.name] = i; });
+
+    // 원격(공용) 직접입력 데이터를 로컬 캐시에 반영해서, 누가 접속해도 같은 값을 보게 한다.
+    if (remoteManual && typeof remoteManual === 'object' && !Array.isArray(remoteManual)) {
+      saveManualData(remoteManual);
+    }
 
     const updatedEl = document.getElementById('updated-at');
     const updatedDate = new Date(currentData.updated_at);
@@ -925,11 +1075,22 @@ async function loadDashboard(){
   }
 }
 
-document.getElementById('reset-manual').addEventListener('click', () => {
-  if (confirm('직접 입력한 데이터를 모두 삭제할까요? 이 작업은 되돌릴 수 없어요.')) {
-    localStorage.removeItem(STORAGE_KEY);
-    renderAll();
+document.getElementById('reset-manual').addEventListener('click', async () => {
+  const token = getAdminToken();
+  const confirmMsg = token
+    ? '직접 입력한 데이터를 모두 삭제할까요? 토큰이 저장되어 있어서, 모든 방문자에게 보이는 데이터도 함께 삭제돼요. 되돌릴 수 없어요.'
+    : '내가 보는 직접 입력 데이터를 삭제할까요? (토큰이 없어서 다른 방문자에게는 영향이 없어요)';
+  if (!confirm(confirmMsg)) return;
+
+  localStorage.removeItem(STORAGE_KEY);
+  if (token) {
+    try {
+      await pushManualDataToGithub({}, token);
+    } catch (err) {
+      alert('모든 방문자 데이터 삭제 중 오류가 발생했어요: ' + err.message);
+    }
   }
+  renderAll();
 });
 
 // ===== 시장 위험도 게이지 =====
@@ -1035,9 +1196,33 @@ document.getElementById('paste-toggle').addEventListener('click', () => {
   document.getElementById('paste-section').classList.toggle('open');
 });
 
-document.getElementById('paste-apply').addEventListener('click', () => {
+document.getElementById('admin-toggle').addEventListener('click', () => {
+  document.getElementById('admin-section').classList.toggle('open');
+});
+
+function refreshAdminStatus(){
+  const statusEl = document.getElementById('admin-status');
+  const token = getAdminToken();
+  if (token) {
+    statusEl.className = 'admin-status active';
+    statusEl.textContent = '토큰이 저장되어 있어요. 이 기기에서는 적용하기를 누르면 모든 방문자에게 반영돼요.';
+  } else {
+    statusEl.className = 'admin-status';
+    statusEl.textContent = '토큰이 없으면 이 기기에서 입력한 값은 나에게만 보여요 (다른 방문자에게 반영되지 않아요).';
+  }
+}
+document.getElementById('admin-token-save').addEventListener('click', () => {
+  const input = document.getElementById('admin-token-input');
+  setAdminToken(input.value.trim());
+  input.value = '';
+  refreshAdminStatus();
+});
+refreshAdminStatus();
+
+document.getElementById('paste-apply').addEventListener('click', async () => {
   const text = document.getElementById('paste-input').value;
   const resultEl = document.getElementById('paste-result');
+  const syncBadge = document.getElementById('sync-badge');
   if (!text.trim()) {
     resultEl.className = 'paste-result warn';
     resultEl.textContent = '먼저 워치리스트 내용을 붙여넣어 주세요.';
@@ -1054,14 +1239,40 @@ document.getElementById('paste-apply').addEventListener('click', () => {
   Object.entries(matched).forEach(([name, entry]) => {
     data[name] = { value: entry.value, changePct: entry.changePct };
   });
-  saveManualData(data);
 
   let msg = `${matchedCount}개 항목을 채웠어요`;
   if (unmatchedLines.length > 0) {
     msg += ` (인식 못한 ${unmatchedLines.length}개: ${unmatchedLines.slice(0,3).join(', ')}${unmatchedLines.length > 3 ? ' 등' : ''})`;
   }
-  resultEl.className = 'paste-result success';
-  resultEl.textContent = msg;
+
+  const token = getAdminToken();
+  if (token) {
+    syncBadge.style.display = 'inline-flex';
+    syncBadge.className = 'sync-badge syncing';
+    syncBadge.textContent = '모두에게 반영 중...';
+    try {
+      await pushManualDataToGithub(data, token);
+      saveManualData(data);
+      syncBadge.className = 'sync-badge';
+      syncBadge.textContent = '모두에게 반영됨';
+      resultEl.className = 'paste-result success';
+      resultEl.textContent = msg;
+    } catch (err) {
+      syncBadge.className = 'sync-badge error';
+      syncBadge.textContent = '반영 실패 (토큰 확인 필요)';
+      resultEl.className = 'paste-result warn';
+      resultEl.textContent = `${msg} — 단, 모든 방문자 반영에는 실패했어요: ${err.message}`;
+      saveManualData(data);
+    }
+  } else {
+    saveManualData(data);
+    syncBadge.style.display = 'inline-flex';
+    syncBadge.className = 'sync-badge error';
+    syncBadge.textContent = '나에게만 보임 (토큰 없음)';
+    resultEl.className = 'paste-result success';
+    resultEl.textContent = msg;
+  }
+
   document.getElementById('paste-input').value = '';
   renderAll();
 });
