@@ -1,34 +1,34 @@
 {
-  "updated_at": "2026-06-28T08:36:06.804267+00:00",
+  "updated_at": "2026-06-28T09:00:13.169365+00:00",
   "items": [
     {
       "name": "USD/KRW",
       "group": "fx",
-      "ticker": "usdkrw",
-      "value": null,
-      "date": null,
-      "ok": false
+      "ticker": "USD/KRW",
+      "value": 1535.66995,
+      "date": "2026-06-28",
+      "ok": true
     },
     {
       "name": "USD/JPY",
       "group": "fx",
-      "ticker": "usdjpy",
-      "value": null,
-      "date": null,
-      "ok": false
+      "ticker": "USD/JPY",
+      "value": 161.75555,
+      "date": "2026-06-28",
+      "ok": true
     },
     {
       "name": "EUR/USD",
       "group": "fx",
-      "ticker": "eurusd",
-      "value": null,
-      "date": null,
-      "ok": false
+      "ticker": "EUR/USD",
+      "value": 1.13915,
+      "date": "2026-06-28",
+      "ok": true
     },
     {
       "name": "달러지수 (DXY)",
       "group": "fx",
-      "ticker": "dx.f",
+      "ticker": "DXY",
       "value": null,
       "date": null,
       "ok": false
@@ -36,7 +36,7 @@
     {
       "name": "미국 10년물",
       "group": "rates",
-      "ticker": "10yusy.b",
+      "ticker": "US10Y",
       "value": null,
       "date": null,
       "ok": false
@@ -44,7 +44,7 @@
     {
       "name": "미국 30년물",
       "group": "rates",
-      "ticker": "30yusy.b",
+      "ticker": "US30Y",
       "value": null,
       "date": null,
       "ok": false
@@ -52,7 +52,7 @@
     {
       "name": "일본 10년물",
       "group": "rates",
-      "ticker": "10yjpy.b",
+      "ticker": "JP10Y",
       "value": null,
       "date": null,
       "ok": false
@@ -60,7 +60,7 @@
     {
       "name": "한국 10년물",
       "group": "rates",
-      "ticker": "10ykry.b",
+      "ticker": "KR10Y",
       "value": null,
       "date": null,
       "ok": false
@@ -68,7 +68,7 @@
     {
       "name": "독일 10년물",
       "group": "rates",
-      "ticker": "10ydey.b",
+      "ticker": "DE10Y",
       "value": null,
       "date": null,
       "ok": false
@@ -76,15 +76,15 @@
     {
       "name": "금 (Gold)",
       "group": "commodity",
-      "ticker": "xauusd",
-      "value": null,
-      "date": null,
-      "ok": false
+      "ticker": "XAU/USD",
+      "value": 4080.87092,
+      "date": "2026-06-28",
+      "ok": true
     },
     {
       "name": "WTI 유가",
       "group": "commodity",
-      "ticker": "cl.f",
+      "ticker": "WTI/USD",
       "value": null,
       "date": null,
       "ok": false
@@ -92,7 +92,7 @@
     {
       "name": "브렌트유",
       "group": "commodity",
-      "ticker": "lco.f",
+      "ticker": "BRENT/USD",
       "value": null,
       "date": null,
       "ok": false
@@ -100,7 +100,7 @@
     {
       "name": "천연가스",
       "group": "commodity",
-      "ticker": "ng.f",
+      "ticker": "NATGAS/USD",
       "value": null,
       "date": null,
       "ok": false
@@ -108,7 +108,7 @@
     {
       "name": "미국 소맥(밀)",
       "group": "agri",
-      "ticker": "zw.f",
+      "ticker": "WHEAT/USD",
       "value": null,
       "date": null,
       "ok": false
@@ -116,7 +116,7 @@
     {
       "name": "미국 옥수수",
       "group": "agri",
-      "ticker": "zc.f",
+      "ticker": "CORN/USD",
       "value": null,
       "date": null,
       "ok": false
@@ -124,7 +124,7 @@
     {
       "name": "미국 대두",
       "group": "agri",
-      "ticker": "zs.f",
+      "ticker": "SOYBEAN/USD",
       "value": null,
       "date": null,
       "ok": false
@@ -132,15 +132,15 @@
     {
       "name": "비트코인",
       "group": "crypto",
-      "ticker": "btcusd",
-      "value": null,
-      "date": null,
-      "ok": false
+      "ticker": "BTC/USD",
+      "value": 60289.74,
+      "date": "2026-06-28",
+      "ok": true
     },
     {
       "name": "VIX 지수",
       "group": "vol",
-      "ticker": "^vix",
+      "ticker": "VIX",
       "value": null,
       "date": null,
       "ok": false
@@ -148,7 +148,7 @@
     {
       "name": "다우존스",
       "group": "us_eq",
-      "ticker": "^dji",
+      "ticker": "DJI",
       "value": null,
       "date": null,
       "ok": false
@@ -156,7 +156,7 @@
     {
       "name": "S&P500",
       "group": "us_eq",
-      "ticker": "^spx",
+      "ticker": "SPX",
       "value": null,
       "date": null,
       "ok": false
@@ -164,7 +164,7 @@
     {
       "name": "나스닥100",
       "group": "us_eq",
-      "ticker": "^ndq",
+      "ticker": "NDX",
       "value": null,
       "date": null,
       "ok": false
@@ -172,7 +172,7 @@
     {
       "name": "러셀2000",
       "group": "us_eq",
-      "ticker": "^rut",
+      "ticker": "RUT",
       "value": null,
       "date": null,
       "ok": false
@@ -180,7 +180,7 @@
     {
       "name": "니케이225",
       "group": "global_eq",
-      "ticker": "^nkx",
+      "ticker": "NI225",
       "value": null,
       "date": null,
       "ok": false
@@ -188,7 +188,7 @@
     {
       "name": "Euro Stoxx 50",
       "group": "global_eq",
-      "ticker": "^estx50",
+      "ticker": "STOXX50E",
       "value": null,
       "date": null,
       "ok": false
@@ -196,7 +196,7 @@
     {
       "name": "항셍지수",
       "group": "global_eq",
-      "ticker": "^hsi",
+      "ticker": "HSI",
       "value": null,
       "date": null,
       "ok": false
@@ -204,7 +204,7 @@
     {
       "name": "대만 가권지수",
       "group": "global_eq",
-      "ticker": "^twii",
+      "ticker": "TWII",
       "value": null,
       "date": null,
       "ok": false
