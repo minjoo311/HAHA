@@ -73,6 +73,78 @@
   }
   .updated .stale{ color: var(--coral); }
 
+  .gauge-wrap{
+    background: var(--panel);
+    border: 1.5px solid var(--panel-line);
+    border-radius: 18px;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+  }
+  .gauge-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .gauge-top h2{
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .gauge-readout{
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 15px;
+    padding: 4px 14px;
+    border-radius: 20px;
+  }
+  .gauge-readout.risk-on{ background: var(--coral-bg); color: #C9402F; }
+  .gauge-readout.risk-off{ background: var(--blue-bg); color: #2E6CA8; }
+  .gauge-readout.neutral{ background: var(--panel-line); color: var(--text-dim); }
+  .gauge-readout.unknown{ background: var(--panel-line); color: var(--text-faint); }
+  .gauge-bar-track{
+    position: relative;
+    height: 14px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, var(--blue) 0%, #E8E4E0 50%, var(--coral) 100%);
+    margin-bottom: 6px;
+  }
+  .gauge-marker{
+    position:absolute;
+    top: -5px;
+    width: 6px;
+    height: 24px;
+    background: var(--text);
+    border-radius: 3px;
+    transform: translateX(-50%);
+    transition: left 0.4s ease;
+    box-shadow: 0 0 0 2px #fff;
+  }
+  .gauge-labels{
+    display:flex;
+    justify-content:space-between;
+    font-size: 10.5px;
+    color: var(--text-faint);
+    margin-bottom: 10px;
+  }
+  .gauge-detail{
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .gauge-detail .factor{
+    display:inline-block;
+    margin: 2px 4px 2px 0;
+    padding: 2px 9px;
+    border-radius: 12px;
+    background: var(--lavender-bg);
+    font-size: 11px;
+    font-weight: 500;
+  }
+
   .paste-section{
     background: var(--panel);
     border: 1.5px solid var(--panel-line);
@@ -323,6 +395,16 @@
     <div class="updated" id="updated-at">불러오는 중...</div>
   </div>
 
+  <div class="gauge-wrap" id="risk-gauge">
+    <div class="gauge-top">
+      <h2>지금 시장 분위기</h2>
+      <span class="gauge-readout unknown" id="gauge-readout">데이터 확인 중</span>
+    </div>
+    <div class="gauge-bar-track"><div class="gauge-marker" id="gauge-marker" style="left:50%"></div></div>
+    <div class="gauge-labels"><span>안전자산 선호</span><span>중립</span><span>위험자산 선호</span></div>
+    <div class="gauge-detail" id="gauge-detail">자동 수집 데이터가 모이면 계산을 시작해요.</div>
+  </div>
+
   <div class="paste-section" id="paste-section">
     <div class="paste-header" id="paste-toggle">
       <h2>📋 investing.com 워치리스트 붙여넣기</h2>
@@ -438,11 +520,13 @@ function parsePastedWatchlist(text){
     if (parts.length < 4) return;
     const name = parts[1];
     const last = parts[3];
+    const chgPctRaw = parts[8];
     if (!name || !last) return;
     if (name.toLowerCase() === 'name') return; // 헤더 행
 
     const value = parseNumber(last);
     if (value === null) return;
+    const changePct = parseNumber(chgPctRaw);
 
     const nameLower = name.toLowerCase();
     let foundRule = null;
@@ -453,7 +537,7 @@ function parsePastedWatchlist(text){
       }
     }
     if (foundRule) {
-      matched[foundRule.name] = value;
+      matched[foundRule.name] = { value, changePct };
     } else {
       unmatchedLines.push(name);
     }
@@ -463,6 +547,14 @@ function parsePastedWatchlist(text){
 }
 
 const STORAGE_KEY = 'macro_dashboard_manual_v1';
+
+// manualData의 각 항목은 {value, changePct} 형태. 예전 버전에 저장된 단순 숫자 데이터와도 호환되도록 정규화한다.
+function normalizeManualEntry(raw){
+  if (raw === undefined || raw === null) return null;
+  if (typeof raw === 'number') return { value: raw, changePct: null };
+  if (typeof raw === 'object' && 'value' in raw) return raw;
+  return null;
+}
 
 function loadManualData(){
   try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : {}; }
@@ -493,9 +585,9 @@ function buildRow(item, prevMap, manualData){
   const row = document.createElement('div');
   row.className = 'row';
   const isManualEligible = MANUAL_ITEMS.includes(item.name);
-  const manualValue = manualData[item.name];
+  const manualEntry = normalizeManualEntry(manualData[item.name]);
   const hasAuto = item.ok && item.value !== null;
-  const hasManual = manualValue !== undefined;
+  const hasManual = manualEntry !== null;
 
   const name = document.createElement('div');
   name.className = 'name';
@@ -536,8 +628,20 @@ function buildRow(item, prevMap, manualData){
   } else if (hasManual) {
     const value = document.createElement('span');
     value.className = 'value';
-    value.textContent = fmtValue(manualValue, item.group);
+    value.textContent = fmtValue(manualEntry.value, item.group);
     valueBlock.appendChild(value);
+
+    const delta = document.createElement('span');
+    if (manualEntry.changePct !== null && manualEntry.changePct !== undefined) {
+      const dir = manualEntry.changePct > 0 ? 'up' : manualEntry.changePct < 0 ? 'down' : 'flat';
+      delta.className = 'delta ' + dir;
+      const arrow = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '–';
+      delta.textContent = `${arrow} ${Math.abs(manualEntry.changePct).toFixed(2)}%`;
+    } else {
+      delta.className = 'delta na';
+      delta.textContent = '–';
+    }
+    valueBlock.appendChild(delta);
   } else if (isManualEligible) {
     const input = document.createElement('input');
     input.className = 'manual-input';
@@ -547,7 +651,7 @@ function buildRow(item, prevMap, manualData){
     input.addEventListener('change', () => {
       const data = loadManualData();
       if (input.value === '') { delete data[item.name]; }
-      else { data[item.name] = parseFloat(input.value); }
+      else { data[item.name] = { value: parseFloat(input.value), changePct: null }; }
       saveManualData(data);
       renderAll();
     });
@@ -565,14 +669,26 @@ function buildRow(item, prevMap, manualData){
 function getValue(items, manualData, name){
   const item = items.find(i => i.name === name);
   if (item && item.ok && item.value !== null) return item.value;
-  if (MANUAL_ITEMS.includes(name) && manualData[name] !== undefined) return manualData[name];
+  const manualEntry = normalizeManualEntry(manualData[name]);
+  if (MANUAL_ITEMS.includes(name) && manualEntry) return manualEntry.value;
   return null;
 }
 
-function getItemDelta(items, prevMap, name){
+function getManualDelta(manualData, name){
+  const entry = normalizeManualEntry(manualData[name]);
+  if (!entry || entry.changePct === null || entry.changePct === undefined) return null;
+  const dir = entry.changePct > 0 ? 'up' : entry.changePct < 0 ? 'down' : 'flat';
+  return { pct: entry.changePct, dir };
+}
+
+function getItemDelta(items, prevMap, name, manualData){
   const item = items.find(i => i.name === name);
-  if (!item) return null;
-  return getDelta(item, prevMap);
+  if (item && item.ok && item.value !== null) {
+    const d = getDelta(item, prevMap);
+    if (d) return d;
+  }
+  if (manualData) return getManualDelta(manualData, name);
+  return null;
 }
 
 // 해석 엔진: 자동 수집만으로도 작동하는 규칙을 우선 배치하고,
@@ -580,7 +696,7 @@ function getItemDelta(items, prevMap, name){
 function buildInsights(items, prevMap, manualData){
   const insights = [];
   const v = (name) => getValue(items, manualData, name);
-  const d = (name) => getItemDelta(items, prevMap, name);
+  const d = (name) => getItemDelta(items, prevMap, name, manualData);
 
   // 1. USD/KRW 단독 변화 (자동 수집만으로 작동)
   const krw = v('USD/KRW'), krwDelta = d('USD/KRW');
@@ -741,6 +857,7 @@ let currentPrevMap = {};
 
 function renderAll(){
   const manualData = loadManualData();
+  renderGauge(currentData.items, currentPrevMap, manualData);
   renderInsights(currentData.items, currentPrevMap, manualData);
 
   Object.values(GROUP_TARGETS).forEach(id => {
@@ -815,6 +932,105 @@ document.getElementById('reset-manual').addEventListener('click', () => {
   }
 });
 
+// ===== 시장 위험도 게이지 =====
+// 여러 신호를 -1(안전자산 선호) ~ +1(위험자산 선호) 범위로 정규화해서 가중 평균한다.
+// 자동 수집 항목(금, 비트코인, 원화)만 있어도 계산되고, 수동 입력(VIX, 국채금리, DXY)이 추가되면 더 정교해진다.
+function computeRiskGauge(items, prevMap, manualData){
+  const v = (name) => getValue(items, manualData, name);
+  const d = (name) => getItemDelta(items, prevMap, name, manualData);
+
+  const factors = [];
+
+  // VIX: 절대 수준 자체가 신호. 13 이하=위험선호, 25 이상=위험회피
+  const vix = v('VIX 지수');
+  if (vix !== null) {
+    const score = Math.max(-1, Math.min(1, (19 - vix) / 9));
+    factors.push({ label: 'VIX', score, weight: 1.4 });
+  }
+
+  // 금 가격 변동: 오르면 안전자산 선호(리스크오프)
+  const goldDelta = d('금 (Gold)');
+  if (goldDelta) {
+    const score = Math.max(-1, Math.min(1, -goldDelta.pct / 1.5));
+    factors.push({ label: '금', score, weight: 1.0 });
+  }
+
+  // 비트코인 변동: 오르면 위험자산 선호(리스크온)
+  const btcDelta = d('비트코인');
+  if (btcDelta) {
+    const score = Math.max(-1, Math.min(1, btcDelta.pct / 4));
+    factors.push({ label: '비트코인', score, weight: 0.8 });
+  }
+
+  // 원/달러 변동: 오르면(원화 약세) 보통 위험회피 분위기와 동행
+  const krwDelta = d('USD/KRW');
+  if (krwDelta) {
+    const score = Math.max(-1, Math.min(1, -krwDelta.pct / 1.0));
+    factors.push({ label: '원/달러', score, weight: 0.7 });
+  }
+
+  // 국채 10년-30년 스프레드: 좁아지거나 역전되면 안전자산 선호 쪽
+  const us10 = v('미국 10년물'), us30 = v('미국 30년물');
+  if (us10 !== null && us30 !== null) {
+    const spread = us30 - us10;
+    const score = Math.max(-1, Math.min(1, (spread - 0.4) / -0.6));
+    factors.push({ label: '미국 국채커브', score, weight: 1.2 });
+  }
+
+  // 달러지수(DXY) 변동: 오르면 보통 안전자산 선호와 동행
+  const dxyDelta = d('달러지수 (DXY)');
+  if (dxyDelta) {
+    const score = Math.max(-1, Math.min(1, -dxyDelta.pct / 0.6));
+    factors.push({ label: 'DXY', score, weight: 0.9 });
+  }
+
+  // 미국 증시(S&P500) 변동: 오르면 위험자산 선호
+  const spxDelta = d('S&P500');
+  if (spxDelta) {
+    const score = Math.max(-1, Math.min(1, spxDelta.pct / 1.2));
+    factors.push({ label: 'S&P500', score, weight: 1.0 });
+  }
+
+  if (factors.length === 0) return null;
+
+  const totalWeight = factors.reduce((sum, f) => sum + f.weight, 0);
+  const weightedScore = factors.reduce((sum, f) => sum + f.score * f.weight, 0) / totalWeight;
+
+  return { score: weightedScore, factors };
+}
+
+function renderGauge(items, prevMap, manualData){
+  const marker = document.getElementById('gauge-marker');
+  const readout = document.getElementById('gauge-readout');
+  const detail = document.getElementById('gauge-detail');
+
+  const result = computeRiskGauge(items, prevMap, manualData);
+  if (!result) {
+    readout.className = 'gauge-readout unknown';
+    readout.textContent = '데이터 확인 중';
+    marker.style.left = '50%';
+    detail.textContent = '자동 수집 데이터가 모이면 계산을 시작해요.';
+    return;
+  }
+
+  const { score, factors } = result;
+  const pos = ((score + 1) / 2) * 100;
+  marker.style.left = Math.max(2, Math.min(98, pos)) + '%';
+
+  let label, cls;
+  if (score >= 0.25) { label = '위험자산 선호 우세'; cls = 'risk-on'; }
+  else if (score <= -0.25) { label = '안전자산 선호 우세'; cls = 'risk-off'; }
+  else { label = '중립'; cls = 'neutral'; }
+  readout.className = 'gauge-readout ' + cls;
+  readout.textContent = label;
+
+  const factorTags = factors.map(f => {
+    const dir = f.score > 0.1 ? '↑위험선호' : f.score < -0.1 ? '↑안전선호' : '중립';
+    return `<span class="factor">${f.label} ${dir}</span>`;
+  }).join('');
+  detail.innerHTML = `${factors.length}개 지표 반영 ${factorTags}`;
+}
+
 document.getElementById('paste-toggle').addEventListener('click', () => {
   document.getElementById('paste-section').classList.toggle('open');
 });
@@ -835,8 +1051,8 @@ document.getElementById('paste-apply').addEventListener('click', () => {
     return;
   }
   const data = loadManualData();
-  Object.entries(matched).forEach(([name, value]) => {
-    data[name] = value;
+  Object.entries(matched).forEach(([name, entry]) => {
+    data[name] = { value: entry.value, changePct: entry.changePct };
   });
   saveManualData(data);
 
