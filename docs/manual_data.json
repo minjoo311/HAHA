@@ -1,1 +1,106 @@
-{}
+{
+  "USD/KRW": {
+    "value": 1535.13,
+    "changePct": -0.63
+  },
+  "USD/JPY": {
+    "value": 161.76,
+    "changePct": -0.02
+  },
+  "EUR/USD": {
+    "value": 1.1384,
+    "changePct": 0.12
+  },
+  "달러지수 (DXY)": {
+    "value": 101.36,
+    "changePct": -0.07
+  },
+  "미국 10년물": {
+    "value": 4.372,
+    "changePct": -0.46
+  },
+  "미국 30년물": {
+    "value": 4.865,
+    "changePct": 0.12
+  },
+  "일본 10년물": {
+    "value": 2.603,
+    "changePct": -0.76
+  },
+  "한국 10년물": {
+    "value": 4.114,
+    "changePct": -0.17
+  },
+  "독일 10년물": {
+    "value": 2.848,
+    "changePct": -0.38
+  },
+  "금 (Gold)": {
+    "value": 4089.26,
+    "changePct": 1.53
+  },
+  "WTI 유가": {
+    "value": 69.23,
+    "changePct": -3.74
+  },
+  "브렌트유": {
+    "value": 72.6,
+    "changePct": -3.84
+  },
+  "천연가스": {
+    "value": 3.231,
+    "changePct": -3.35
+  },
+  "미국 소맥(밀)": {
+    "value": 589.75,
+    "changePct": -1.95
+  },
+  "미국 옥수수": {
+    "value": 412.75,
+    "changePct": -0.48
+  },
+  "미국 대두": {
+    "value": 1156.25,
+    "changePct": -0.06
+  },
+  "비트코인": {
+    "value": 60139,
+    "changePct": -0.76
+  },
+  "VIX 지수": {
+    "value": 18.41,
+    "changePct": -2.54
+  },
+  "다우존스": {
+    "value": 51876.11,
+    "changePct": -0.09
+  },
+  "S&P500": {
+    "value": 7354.02,
+    "changePct": -0.05
+  },
+  "나스닥100": {
+    "value": 29118.24,
+    "changePct": -1.09
+  },
+  "러셀2000": {
+    "value": 3010.08,
+    "changePct": 0.07
+  },
+  "니케이225": {
+    "value": 69360.88,
+    "changePct": -4.15
+  },
+  "Euro Stoxx 50": {
+    "value": 13128.77,
+    "changePct": -0.57
+  },
+  "항셍지수": {
+    "value": 22671.86,
+    "changePct": -1.76
+  },
+  "대만 가권지수": {
+    "value": 44571.76,
+    "changePct": -3.64
+  }
+}
