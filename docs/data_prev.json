@@ -1,28 +1,28 @@
 {
-  "updated_at": "2026-07-07T10:37:18.732501+00:00",
+  "updated_at": "2026-07-08T07:20:57.195744+00:00",
   "items": [
     {
       "name": "USD/KRW",
       "group": "fx",
       "ticker": "USD/KRW",
-      "value": 1516.74532,
-      "date": "2026-07-07",
+      "value": 1503.2792,
+      "date": "2026-07-08",
       "ok": true
     },
     {
       "name": "USD/JPY",
       "group": "fx",
       "ticker": "USD/JPY",
-      "value": 161.90826,
-      "date": "2026-07-07",
+      "value": 162.26743,
+      "date": "2026-07-08",
       "ok": true
     },
     {
       "name": "EUR/USD",
       "group": "fx",
       "ticker": "EUR/USD",
-      "value": 1.14294,
-      "date": "2026-07-07",
+      "value": 1.14177,
+      "date": "2026-07-08",
       "ok": true
     },
     {
@@ -77,8 +77,8 @@
       "name": "금 (Gold)",
       "group": "commodity",
       "ticker": "XAU/USD",
-      "value": 4136.56076,
-      "date": "2026-07-07",
+      "value": 4116.76665,
+      "date": "2026-07-08",
       "ok": true
     },
     {
@@ -133,8 +133,8 @@
       "name": "비트코인",
       "group": "crypto",
       "ticker": "BTC/USD",
-      "value": 63202.37,
-      "date": "2026-07-07",
+      "value": 62619.39,
+      "date": "2026-07-08",
       "ok": true
     },
     {
